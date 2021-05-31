@@ -50,7 +50,8 @@ class XPlaneImport(bpy.types.Operator):
         context.window_manager.fileselect_add(self)
         return {"RUNNING_MODAL"}
     
-    def createMeshFromData(self, name, origin, verts, faces, material, vert_uvs, vert_normals):
+    #def createMeshFromData(self, name, origin, verts, faces, material, vert_uvs, vert_normals):
+    def createMeshFromData(self, name, origin, verts, faces, vert_uvs, vert_normals):
         # Create mesh and object
         me = bpy.data.meshes.new(name+'Mesh')
         ob = bpy.data.objects.new(name, me)
@@ -67,7 +68,7 @@ class XPlaneImport(bpy.types.Operator):
         me.from_pydata(verts, [], faces)
 
         # Assign the Material to the object
-        me.materials.append(material)
+        #me.materials.append(material)
 
         # Assign the UV coordinates to each vertex
         me.uv_textures.new(name="UVMap")
@@ -116,21 +117,21 @@ class XPlaneImport(bpy.types.Operator):
             if (len(line) == 0):
                 continue
             
-            if(line[0] == 'TEXTURE'):
-                texfilename = line[1]
-
-                # Create and add a material
-                material = bpy.data.materials.new('Material')
-
-                # Create texture
-                tex = bpy.data.textures.new('Texture', type = 'IMAGE')
-                tex.image = bpy.data.images.load("%s\\%s" % (os.path.dirname(self.filepath), texfilename))
-                tex.use_alpha = True
-
-                # Add Texture to the Material
-                mtex = material.texture_slots.add()
-                mtex.texture = tex
-                mtex.texture_coords = 'UV'
+#            if(line[0] == 'TEXTURE'):
+#                texfilename = line[1]
+#
+#                # Create and add a material
+#                material = bpy.data.materials.new('Material')
+#
+#                # Create texture
+#                tex = bpy.data.textures.new('Texture', type = 'IMAGE')
+#                tex.image = bpy.data.images.load("%s\\%s" % (os.path.dirname(self.filepath), texfilename))
+#                tex.use_alpha = True
+#
+#                # Add Texture to the Material
+#                mtex = material.texture_slots.add()
+#                mtex.texture = tex
+#                mtex.texture_coords = 'UV'
 
 
             if(line[0] == 'VT'):
@@ -151,24 +152,24 @@ class XPlaneImport(bpy.types.Operator):
             if(line[0] == 'IDX10' or line[0] == 'IDX'):
                 faces.extend(map(int, line[1:]))
                 
-            if(line[0] == 'ANIM_begin'):
-                anim_nesting += 1
-                a_trans.append(Vector((0,0,0)))
-                
-            if(line[0] == 'ANIM_trans'):
-                trans_x = float(line[1])
-                trans_y = (float(line[3]) * -1)
-                trans_z = float(line[2])
-                o_t = Vector( (trans_x, trans_y, trans_z) )
-                a_trans[anim_nesting] = o_t
-                origin_temp = origin_temp + o_t
-                trans_available = True
-            
-            if(line[0] == 'ANIM_end'):
-                anim_nesting -= 1
-                origin_temp = origin_temp - a_trans.pop()
-                if(anim_nesting == 0):
-                    trans_available = False
+#            if(line[0] == 'ANIM_begin'):
+#                anim_nesting += 1
+#                a_trans.append(Vector((0,0,0)))
+#                
+#            if(line[0] == 'ANIM_trans'):
+#                trans_x = float(line[1])
+#                trans_y = (float(line[3]) * -1)
+#                trans_z = float(line[2])
+#                o_t = Vector( (trans_x, trans_y, trans_z) )
+#                a_trans[anim_nesting] = o_t
+#                origin_temp = origin_temp + o_t
+#                trans_available = True
+#            
+#            if(line[0] == 'ANIM_end'):
+#                anim_nesting -= 1
+#                origin_temp = origin_temp - a_trans.pop()
+#                if(anim_nesting == 0):
+#                    trans_available = False
                 
             if(line[0] == 'TRIS'):
                 obj_origin = Vector( origo )
@@ -181,7 +182,8 @@ class XPlaneImport(bpy.types.Operator):
         counter = 0
         for orig, obj in objects:
             obj_tmp = tuple( zip(*[iter(obj)]*3) )
-            self.createMeshFromData('OBJ%d' % counter, orig, verts, obj_tmp, material, uv, normals)
+            #self.createMeshFromData('OBJ%d' % counter, orig, verts, obj_tmp, material, uv, normals)
+            self.createMeshFromData('OBJ%d' % counter, orig, verts, obj_tmp, uv, normals)
             counter+=1
         
         return
